@@ -1,5 +1,5 @@
 # Ignorar el entorno virtual
-venv/
+env/
 
 # Archivos de compilación de Python
 __pycache__/
@@ -22,3 +22,6 @@ build/
 
 # Dependencias generadas
 *.egg-info/
+
+# Carpeta de descargars
+downloads/
