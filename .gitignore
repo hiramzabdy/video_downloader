@@ -1,0 +1,24 @@
+# Ignorar el entorno virtual
+venv/
+
+# Archivos de compilación de Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Archivos de logs y caché
+*.log
+*.sqlite3
+
+# Configuración de entornos de desarrollo
+.vscode/
+.idea/
+*.swp
+
+# Archivos de empaquetado
+dist/
+build/
+*.spec
+
+# Dependencias generadas
+*.egg-info/
