@@ -29,5 +29,5 @@ def download_video(url: str, output_folder: str = "downloads", audio_only: bool 
         print(f"Error al descargar el video: {e}")
 
 if __name__ == "__main__":
-    test_url = "https://www.youtube.com/watch?v=xzceH88r6QM"
+    test_url = "https://www.youtube.com/watch?v=EVbR7F2YgNQ"
     download_video(test_url, audio_only=False)
