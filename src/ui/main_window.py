@@ -18,7 +18,9 @@ class DownloadThread(QThread):
     
     def run(self):
         try:
-            download_video(self.url, audio_only=self.audio_only)
+            downloads_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "downloads"))
+            os.makedirs(downloads_path, exist_ok=True)
+            download_video(self.url, output_folder=downloads_path, audio_only=self.audio_only)
             self.progress_signal.emit("Descarga completada.\n")
         except Exception as e:
             self.progress_signal.emit(f"Error: {e}\n")
