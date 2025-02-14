@@ -1,9 +1,7 @@
 from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton, QTextEdit, QCheckBox
 from PyQt6.QtCore import QThread, pyqtSignal
-import sys
 import os
 import sys
-import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from core.downloader import download_video
 
