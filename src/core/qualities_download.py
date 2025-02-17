@@ -27,14 +27,14 @@ def download_video_and_audio(url: str, output_folder: str = "downloads"):
         # Mostrar opciones de formato disponibles
         print("Selecciona la calidad del video que deseas descargar:")
         for i, fmt in enumerate(formats):
-            print(fmt)
             itag = str(fmt['format_id'])
             ext = fmt['ext']
             res = fmt.get('resolution', '').replace('+', 'x')
             fps = fmt.get('fps', '')
-            
+            size = fmt.get('filesize')
+            size_mib = round(size / (2**20), 2) if isinstance(size, (int, float)) and size >= 0 else "Unknown"
             if fmt.get('vcodec') != 'none':
-                format_desc = f"{res} {fps} FPS, video codec: {fmt.get('vcodec')} (format id: {itag})"
+                format_desc = f"{res} {fps} FPS, Size: {size_mib} MiB, video codec: {fmt.get('vcodec')} (format id: {itag})"
                 print(f"[{i+1}] - {format_desc}")
                 video_format_options[i + 1] = itag
 
