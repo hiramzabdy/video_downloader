@@ -21,8 +21,7 @@ def download_video_and_audio(url: str, output_folder: str = "downloads"):
             video_info = ydl_info.extract_info(url, download=False) 
         
         formats = video_info.get('formats', [])
-        video_format_options = {}
-        audio_format_options = {}
+        video_format_options = {} #Used to select item to download from list
 
         # Mostrar opciones de formato disponibles
         print("Selecciona la calidad del video que deseas descargar:")
@@ -55,25 +54,25 @@ def download_video_and_audio(url: str, output_folder: str = "downloads"):
         for i, (fmt, order) in enumerate(sorted_formats):
             itag = str(fmt['format_id'])
             ext = fmt['ext']
-            res = get_vertical_resolution(fmt.get('resolution', ''))
-            fps = fmt.get('fps', '')
+            res = get_vertical_resolution(fmt.get('resolution'))
+            fps = fmt.get('fps')
             size = fmt.get('filesize')
             size_mib = round(size / (2**20), 2) if isinstance(size, (int, float)) and size >= 0 else None
             
             codec_map = {
-                'avc1': 'AVC',
-                'vp9': 'VP9',
-                'av01': 'AV1'
+                'avc1': 'AVC - Stardard Quality, Highest Compatibility',
+                'vp9': 'VP9 - Better Quality, Good Compatibility',
+                'av01': 'AV1 - Highest Quality, Less Compatibility'
             }
             
-            vcodec = fmt.get('vcodec', '').split('.')[0]  # Obtener solo la parte inicial del codec
+            vcodec = fmt.get('vcodec').split('.')[0]  # Obtener solo la parte inicial del codec
             current_codec_group = codec_map.get(vcodec)
             
             if previous_codec_group != current_codec_group:
                 print(f"\n{current_codec_group}")
                 previous_codec_group = current_codec_group
             
-            format_desc = f"Res: {res} {fps} FPS, Size: {size_mib} MiB, Codec: {current_codec_group}, Ext: {ext}."
+            format_desc = f"Res: {res} {fps} FPS, Size: {size_mib} MiB, Codec: {current_codec_group}."
             
             print(f"[{i+1}] - {format_desc}")
             video_format_options[i + 1] = itag
@@ -104,6 +103,6 @@ def download_video_and_audio(url: str, output_folder: str = "downloads"):
         print(f"Error al descargar el video: {e}")
         return
 
-if __name__ == "__main__":#
+if __name__ == "__main__":
     test_url = "https://www.youtube.com/watch?v=EVbR7F2YgNQ"
     download_video_and_audio(test_url)
