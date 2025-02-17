@@ -30,7 +30,7 @@ def download_video_and_audio(url: str, output_folder: str = "downloads"):
         # Filtrar los formatos en orden específico (avc1, vp9, av01)
         sorted_formats = []
         for fmt in formats:
-            if 'vcodec' in fmt and fmt['vcodec'] != 'none':
+            if  fmt['vcodec'] != 'none' and isinstance(fmt.get('filesize'), (int, float))      :
                 vcodec = fmt.get('vcodec')
                 if vcodec.startswith('avc1'):
                     sorted_formats.append((fmt, 1))  # Ordenamiento por avc1
@@ -42,18 +42,41 @@ def download_video_and_audio(url: str, output_folder: str = "downloads"):
         # Ordenar los formatos según el índice del ordenamiento (1, 2, 3)
         sorted_formats.sort(key=lambda x: x[1])
 
+        def get_vertical_resolution(resolution):
+            """Extraer la resolución vertical de la cadena de resolución."""
+            if 'x' in resolution:
+                parts = resolution.split('x')
+                return f"{parts[1]}p"
+            return "Unknown"
+
+        # Imprimir formatos ordenados y filtrados
+        previous_codec_group = None
+
         for i, (fmt, order) in enumerate(sorted_formats):
             itag = str(fmt['format_id'])
             ext = fmt['ext']
-            res = fmt.get('resolution', '').replace('+', 'x')
+            res = get_vertical_resolution(fmt.get('resolution', ''))
             fps = fmt.get('fps', '')
             size = fmt.get('filesize')
             size_mib = round(size / (2**20), 2) if isinstance(size, (int, float)) and size >= 0 else None
-            if fmt.get('vcodec') != 'none' and isinstance(size_mib, (float)):
-                format_desc = f"{res} {fps} FPS, Size: {size_mib} MiB, video codec: {fmt.get('vcodec')}, Extension: {ext}."
-                print(f"[{i+1}] - {format_desc}")
-                video_format_options[i + 1] = itag
-
+            
+            codec_map = {
+                'avc1': 'AVC',
+                'vp9': 'VP9',
+                'av01': 'AV1'
+            }
+            
+            vcodec = fmt.get('vcodec', '').split('.')[0]  # Obtener solo la parte inicial del codec
+            current_codec_group = codec_map.get(vcodec)
+            
+            if previous_codec_group != current_codec_group:
+                print(f"\n{current_codec_group}")
+                previous_codec_group = current_codec_group
+            
+            format_desc = f"Res: {res} {fps} FPS, Size: {size_mib} MiB, Codec: {current_codec_group}, Ext: {ext}."
+            
+            print(f"[{i+1}] - {format_desc}")
+            video_format_options[i + 1] = itag
 
         while True:
             try:
@@ -70,7 +93,7 @@ def download_video_and_audio(url: str, output_folder: str = "downloads"):
         
         ydl_opts_download_video = {
             'format': f'{selected_video_format_id}+bestaudio/best',
-            'outtmpl': os.path.join(output_folder, '%(title)s.%(ext)s'),
+            'outtmpl': os.path.join(output_folder, '%(title)s - %(height)sp.%(ext)s'),
             'noplaylist': True,
         }
 
