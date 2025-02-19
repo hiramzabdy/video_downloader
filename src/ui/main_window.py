@@ -3,7 +3,7 @@ from PyQt6.QtCore import QThread, pyqtSignal
 import os
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from core.downloader import download_video
+from core.downloader import *
 
 
 class DownloadThread(QThread):
