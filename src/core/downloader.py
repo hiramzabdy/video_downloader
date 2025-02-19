@@ -2,85 +2,112 @@ import yt_dlp
 import os
 import re
 
-def download_video_and_audio(url: str, output_folder: str = "downloads", audio_only: bool = False):
+def download_video_and_audio(url: str, output_folder: str = "downloads", download_mode: str = "quality"):
     """
-    Descarga un video con su mejor formato de audio disponible.
+    Descarga un video con el formato de audio correspondiente según el modo seleccionado.
     
-    :param url: URL del video de YouTube
-    :param output_folder: Carpeta donde se guardará el archivo descargado
+    :param url: URL del video en YouTube que se desea descargar. 
+               Ejemplo: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'
+    
+    :param output_folder: Nombre o ruta de la carpeta donde se guardará el archivo descargado.
+                          Si no se especifica, por defecto será "downloads".
+                          
+    :param download_mode: Modo de descarga:
+        - 'quality': Descarga tanto el video como su mejor formato de audio disponible (por defecto).
+        - 'audio': Descarga solo el mejor formato de audio del video.
+        - 'select': Permite seleccionar manualmente la calidad del video a descargar.
     """
     # os.makedirs(output_folder, exist_ok=True) #Creates folder if it doesn't exist
     
-    ydl_opts_info = {
-        'format': 'best',
-        'dump_single_json': True,
-        'listformats': False,
-    }
-    
-    try:
-        with yt_dlp.YoutubeDL(ydl_opts_info) as ydl_info:
-            video_info = ydl_info.extract_info(url, download=False) 
-        
-        formats = video_info.get('formats', [])
-        video_format_options = {} #Used to select item to download from list
-        sorted_formats = sort_formats(formats) #Sorts items by codec (avc, vp, av1) and res (lower to higher)
-
-        print("Selecciona la calidad del video que deseas descargar:")
-        codec_map = {
-            'avc1': 'Codec: AVC - Stardard Quality, Highest Compatibility',
-            'vp9': 'Codec: VP9 - Better Quality, Good Compatibility',
-            'av01': 'Codec: AV1 - Highest Quality, Less Compatibility'
+    if download_mode == "quality" or download_mode == "audio":
+        ydl_opts = {
+            'outtmpl': os.path.join(output_folder, '%(title)s.%(ext)s'),
+            'format': 'bestaudio' if download_mode == "audio" else 'bestvideo+bestaudio/best',
+            'postprocessors': [{
+                'key': 'FFmpegExtractAudio',
+                'preferredcodec': 'mp3',
+                'preferredquality': '192',
+            }] if download_mode == "audio" else []
         }
         
-        previous_codec_group = None
-
-        #Prints each format and its details
-        for i, (fmt, order) in enumerate(sorted_formats):
-            itag = str(fmt['format_id'])
-            ext = fmt['ext']
-            res = get_vertical_resolution(fmt.get('resolution'))
-            fps = fmt.get('fps')
-            size = fmt.get('filesize')
-            size_mib = round(size / (2**20), 2) if isinstance(size, (int, float)) and size >= 0 else None
+        try:
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                ydl.download([url])
+            print("Descarga completada.")
+        except Exception as e:
+            print(f"Error al descargar el video: {e}")
             
-            vcodec = fmt.get('vcodec').split('.')[0]  # Gets only initial part of the codec
-            current_codec_group = codec_map.get(vcodec)
-            
-            # Prints header for each codec
-            if previous_codec_group != current_codec_group:
-                print(f"\n{current_codec_group}")
-                previous_codec_group = current_codec_group
-            
-            format_desc = f"Res: {res} {fps} FPS, Size: {size_mib} MiB."
-            
-            print(f"[{i+1}] - {format_desc}")
-            video_format_options[i + 1] = itag #Ties each format to an index, starting by 1
-
-        while True:
-            try:
-                choice_video = int(input("Ingresa el número del formato de vídeo deseado: "))
-                if choice_video in video_format_options.keys():
-                    break
-                else:
-                    print("Opción no válida, intenta nuevamente.")
-            except ValueError:
-                print("Entrada no válida. Ingresa un número.")
-
-        # Descargar el formato seleccionado de vídeo
-        selected_video_format_id = video_format_options[choice_video]
-        
-        ydl_opts_download_video = {
-            'format': f'{selected_video_format_id}+bestaudio/best',
-            'outtmpl': os.path.join(output_folder, '%(title)s - %(height)sp.%(ext)s'),
-            'noplaylist': True,
+    else:
+        ydl_opts_info = {
+            'format': 'best',
+            'dump_single_json': True,
+            'listformats': False,
         }
+        
+        try:
+            with yt_dlp.YoutubeDL(ydl_opts_info) as ydl_info:
+                video_info = ydl_info.extract_info(url, download=False) 
+            
+            formats = video_info.get('formats', [])
+            video_format_options = {} #Used to select item to download from list
+            sorted_formats = sort_formats(formats) #Sorts items by codec (avc, vp, av1) and res (lower to higher)
 
-        with yt_dlp.YoutubeDL(ydl_opts_download_video) as ydl:
-            ydl.download([url])
+            print("Selecciona la calidad del video que deseas descargar:")
+            codec_map = {
+                'avc1': 'Codec: AVC - Stardard Quality, Highest Compatibility',
+                'vp9': 'Codec: VP9 - Better Quality, Good Compatibility',
+                'av01': 'Codec: AV1 - Highest Quality, Less Compatibility'
+            }
+            
+            previous_codec_group = None
 
-    except Exception as e:
-        print(f"Error al descargar el video: {e}")
-        return
+            #Prints each format and its details
+            for i, (fmt, order) in enumerate(sorted_formats):
+                itag = str(fmt['format_id'])
+                ext = fmt['ext']
+                res = get_vertical_resolution(fmt.get('resolution'))
+                fps = fmt.get('fps')
+                size = fmt.get('filesize')
+                size_mib = round(size / (2**20), 2) if isinstance(size, (int, float)) and size >= 0 else None
+                
+                vcodec = fmt.get('vcodec').split('.')[0]  # Gets only initial part of the codec
+                current_codec_group = codec_map.get(vcodec)
+                
+                # Prints header for each codec
+                if previous_codec_group != current_codec_group:
+                    print(f"\n{current_codec_group}")
+                    previous_codec_group = current_codec_group
+                
+                format_desc = f"Res: {res} {fps} FPS, Size: {size_mib} MiB."
+                
+                print(f"[{i+1}] - {format_desc}")
+                video_format_options[i + 1] = itag #Ties each format to an index, starting by 1
+
+            while True:
+                try:
+                    choice_video = int(input("Ingresa el número del formato de vídeo deseado: "))
+                    if choice_video in video_format_options.keys():
+                        break
+                    else:
+                        print("Opción no válida, intenta nuevamente.")
+                except ValueError:
+                    print("Entrada no válida. Ingresa un número.")
+
+            # Descargar el formato seleccionado de vídeo
+            selected_video_format_id = video_format_options[choice_video]
+            
+            ydl_opts_download_video = {
+                'format': f'{selected_video_format_id}+bestaudio/best',
+                'outtmpl': os.path.join(output_folder, '%(title)s - %(height)sp.%(ext)s'),
+                'noplaylist': True,
+            }
+
+            with yt_dlp.YoutubeDL(ydl_opts_download_video) as ydl:
+                ydl.download([url])
+
+        except Exception as e:
+            print(f"Error al descargar el video: {e}")
+            return
 
 def sort_formats(formats):
     # Filtrar los formatos en orden específico (avc1, vp9, av01)
