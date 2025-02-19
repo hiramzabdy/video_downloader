@@ -2,14 +2,14 @@ import yt_dlp
 import os
 import re
 
-def download_video_and_audio(url: str, output_folder: str = "downloads"):
+def download_video_and_audio(url: str, output_folder: str = "downloads", audio_only: bool = False):
     """
     Descarga un video con su mejor formato de audio disponible.
     
     :param url: URL del video de YouTube
     :param output_folder: Carpeta donde se guardará el archivo descargado
     """
-    os.makedirs(output_folder, exist_ok=True) #Creates folder if it doesn't exist
+    # os.makedirs(output_folder, exist_ok=True) #Creates folder if it doesn't exist
     
     ydl_opts_info = {
         'format': 'best',
