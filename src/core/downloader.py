@@ -2,7 +2,7 @@ import yt_dlp
 import os
 import re
 
-def download_video_and_audio(url: str, output_folder: str = "downloads", download_mode: str = "quality"):
+def download_video_and_audio(url: str, output_folder: str = "downloads", download_mode: str = "quality", progress_callback=None):
     """
     Descarga un video con el formato de audio correspondiente según el modo seleccionado.
     
@@ -27,7 +27,8 @@ def download_video_and_audio(url: str, output_folder: str = "downloads", downloa
                 'key': 'FFmpegExtractAudio',
                 'preferredcodec': 'mp3',
                 'preferredquality': '192',
-            }] if download_mode == "audio" else []
+            }] if download_mode == "audio" else [],
+            'progress_hooks': [lambda d: update_progress(d, progress_callback)]
         }
         
         try:
@@ -130,6 +131,16 @@ def get_vertical_resolution(resolution):
         parts = resolution.split('x')
         return f"{parts[1]}p"
     return "Unknown"
+
+def update_progress(d, progress_callback):
+    if d['status'] == 'downloading':
+        total_bytes = d.get('total_bytes') or d.get('total_bytes_estimate')
+        downloaded_bytes = d.get('downloaded_bytes', 0)
+        
+        if total_bytes:
+            progress = int(downloaded_bytes * 100 / total_bytes)
+            if progress_callback:
+                progress_callback(progress)
 
 def is_valid_youtube_url(url: str) -> bool:
     """
