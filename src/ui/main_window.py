@@ -16,18 +16,21 @@ class DownloadThread(QThread):
     
     def run(self):
         try:
-            downloads_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "downloads"))
-            os.makedirs(downloads_path, exist_ok=True)
+            #downloads_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "downloads"))
+            #os.makedirs(downloads_path, exist_ok=True)
             
             download_video_and_audio(
                 url=self.url, 
-                output_folder=downloads_path, 
+                output_folder="downloads", 
                 download_mode=self.download_mode, 
                 progress_callback=lambda p: self.download_progress.emit(p)
             )
             self.progress_signal.emit("Descarga completada.\n")
         except Exception as e:
             self.progress_signal.emit(f"Error: {e}\n")
+
+class ListQualities():
+    pass
 
 class MainWindow(QWidget):
     def __init__(self):
@@ -36,7 +39,7 @@ class MainWindow(QWidget):
 
     def init_ui(self):
         self.setWindowTitle("Descargador de Videos")
-        self.setGeometry(100, 100, 500, 250)  # Ajustamos el tamaño
+        self.setGeometry(100, 100, 500, 250)
         
         layout = QVBoxLayout()
         
@@ -44,7 +47,7 @@ class MainWindow(QWidget):
         self.url_input.setPlaceholderText("Ingrese la URL del video")
         
         self.mode_selector = QComboBox()
-        self.mode_selector.addItems(["Listar resoluciones", "Mejor calidad", "Sólo audio"])
+        self.mode_selector.addItems(["Mejor calidad", "Sólo audio", "Listar resoluciones"])
         
         layout.addWidget(QLabel("URL del video:"))
         layout.addWidget(self.url_input)
