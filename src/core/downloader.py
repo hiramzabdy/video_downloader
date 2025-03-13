@@ -53,7 +53,7 @@ def download_video_and_audio(url: str, output_folder: str = "downloads", downloa
             video_format_options = {} #Used to select item to download from list
             sorted_formats = sort_formats(formats) #Sorts items by codec (avc, vp, av1) and res (lower to higher)
 
-            print("Selecciona la calidad del video que deseas descargar:")
+            # print("Selecciona la calidad del video que deseas descargar:")
             codec_map = {
                 'avc1': 'Codec: AVC - Stardard Quality, Highest Compatibility',
                 'vp9': 'Codec: VP9 - Better Quality, Good Compatibility',

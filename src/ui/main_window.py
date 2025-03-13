@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton, QTextEdit, QComboBox, QProgressBar
+from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton, QTextEdit, QComboBox, QProgressBar, QListWidget
 from PyQt6.QtCore import QThread, pyqtSignal
 import os
 import sys
@@ -29,8 +29,36 @@ class DownloadThread(QThread):
         except Exception as e:
             self.progress_signal.emit(f"Error: {e}\n")
 
-class ListQualities():
-    pass
+class ListQualities(QWidget):
+    def __init__(self, qualities, parent):
+        super().__init__()
+        self.setWindowTitle("Seleccionar calidad")
+        self.setGeometry(150, 150, 300, 300)
+        self.parent = parent
+        self.qualities = qualities
+        self.init_ui()
+    
+    def init_ui(self):
+        layout = QVBoxLayout()
+        
+        self.list_widget = QListWidget()
+        for quality in self.qualities:
+            self.list_widget.addItem(quality)
+        
+        self.confirm_button = QPushButton("Confirmar")
+        self.confirm_button.clicked.connect(self.confirm_selection)
+        
+        layout.addWidget(QLabel("Seleccione una calidad:"))
+        layout.addWidget(self.list_widget)
+        layout.addWidget(self.confirm_button)
+        
+        self.setLayout(layout)
+    
+    def confirm_selection(self):
+        selected_item = self.list_widget.currentItem()
+        if selected_item:
+            self.parent.selected_quality = selected_item.text()
+            self.close()
 
 class MainWindow(QWidget):
     def __init__(self):
@@ -79,7 +107,7 @@ class MainWindow(QWidget):
             self.log_area.append("Por favor, ingrese una URL válida.\n")
             return
         
-        self.download_thread = DownloadThread(url=url, download_mode="quality" if mode == "Mejor calidad" else "audio" if mode == "Sólo audio" else "select")
+        self.download_thread = DownloadThread(url=url, download_mode="quality" if mode == "Mejor calidad" else "audio" if mode == "Sólo audio" else "select") #Modify to list qualities
         
         self.download_thread.progress_signal.connect(self.log_area.append)
         self.download_thread.download_progress.connect(self.progress_bar.setValue)  # Conectar progreso
